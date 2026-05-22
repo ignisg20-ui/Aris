@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aris-inference
+  labels: { app: aris-inference }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: aris-inference }
+  template:
+    metadata:
+      labels: { app: aris-inference }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      runtimeClassName: nvidia
+      containers:
+        - name: aris
+          image: ghcr.io/ignisg20-ui/aris:inference
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - { name: ARIS_MODEL_CONFIG, value: "/opt/aris/llm/configs/7b.yaml" }
+            - { name: ARIS_CHECKPOINT,   value: "/models/aris-7b/model.pt" }
+            - { name: ARIS_LOG_LEVEL,    value: "INFO" }
+          readinessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+              memory: 64Gi
+            requests:
+              cpu: "4"
+              memory: 32Gi
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - { name: models, mountPath: /models }
+            - { name: shm, mountPath: /dev/shm }
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: aris-models
+        - name: shm
+          emptyDir: { medium: Memory, sizeLimit: 8Gi }

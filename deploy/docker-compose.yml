@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  aris-inference:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: inference
+    image: aris:inference
+    container_name: aris-inference
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    ports:
+      - "8000:8000"
+    environment:
+      - ARIS_MODEL_CONFIG=/opt/aris/llm/configs/7b.yaml
+      - ARIS_CHECKPOINT=/models/aris-7b/latest/model_rank_0000.pt
+      - ARIS_LOG_LEVEL=INFO
+    volumes:
+      - models:/models
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: aris-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: aris-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+volumes:
+  models:

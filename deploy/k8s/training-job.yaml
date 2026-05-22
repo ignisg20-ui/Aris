@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aris-pretrain-7b
+spec:
+  parallelism: 8
+  completions: 8
+  completionMode: Indexed
+  backoffLimit: 0
+  template:
+    metadata:
+      labels: { app: aris-pretrain }
+    spec:
+      restartPolicy: Never
+      runtimeClassName: nvidia
+      containers:
+        - name: trainer
+          image: ghcr.io/ignisg20-ui/aris:train
+          command: ["torchrun"]
+          args:
+            - "--nnodes=8"
+            - "--nproc_per_node=8"
+            - "--node_rank=$(JOB_COMPLETION_INDEX)"
+            - "--rdzv_id=aris-pretrain-7b"
+            - "--rdzv_backend=c10d"
+            - "--rdzv_endpoint=aris-pretrain-7b-0.aris-pretrain-7b:29500"
+            - "-m"
+            - "llm.training.pretrain"
+            - "--config=/opt/aris/llm/configs/7b.yaml"
+            - "--data=/data/pretrain"
+            - "--out=/checkpoints/aris-7b"
+            - "--steps=200000"
+            - "--micro-batch=8"
+            - "--accum=4"
+            - "--tp=8"
+          env:
+            - { name: JOB_COMPLETION_INDEX, valueFrom: { fieldRef: { fieldPath: metadata.labels['batch.kubernetes.io/job-completion-index'] } } }
+            - { name: NCCL_DEBUG, value: "INFO" }
+            - { name: NCCL_IB_DISABLE, value: "0" }
+          resources:
+            limits:
+              nvidia.com/gpu: "8"
+              memory: 512Gi
+            requests:
+              cpu: "32"
+              memory: 384Gi
+              nvidia.com/gpu: "8"
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - { name: checkpoints, mountPath: /checkpoints }
+            - { name: shm, mountPath: /dev/shm }
+      volumes:
+        - { name: data,        persistentVolumeClaim: { claimName: aris-data } }
+        - { name: checkpoints, persistentVolumeClaim: { claimName: aris-models } }
+        - { name: shm, emptyDir: { medium: Memory, sizeLimit: 64Gi } }

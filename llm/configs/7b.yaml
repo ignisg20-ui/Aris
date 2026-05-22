@@ -1,0 +1,18 @@
+# Aris-7B: dense workhorse, single-GPU inference at bf16.
+name: aris-7b
+vocab_size: 128256
+hidden_size: 4096
+intermediate_size: 14336
+num_layers: 32
+max_position_embeddings: 32768
+norm_eps: 1.0e-5
+dtype: bf16
+attention:
+  num_heads: 32
+  num_kv_heads: 8
+  attention_impl: sdpa
+  use_qk_norm: true
+rope:
+  rope_theta: 1000000.0
+moe:
+  num_experts: 1

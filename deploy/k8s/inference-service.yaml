@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aris-inference
+  labels: { app: aris-inference }
+spec:
+  type: ClusterIP
+  selector: { app: aris-inference }
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aris-models
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 500Gi
+  storageClassName: shared-nfs

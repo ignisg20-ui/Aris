@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.installed.cfg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Tests / type / lint
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Logs
+*.log
+logs/
+wandb/
+tensorboard/
+
+# Model artifacts
+checkpoints/
+*.pt
+*.bin
+*.safetensors
+*.ckpt
+runs/
+
+# Data
+data/
+datasets/
+*.jsonl
+*.parquet
+!tests/data/**/*.jsonl
+
+# Secrets
+.env
+.env.*
+!.env.example
