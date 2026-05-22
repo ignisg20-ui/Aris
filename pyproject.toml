@@ -63,6 +63,10 @@ aris-finetune = "llm.alignment.sft:main"
 include = ["llm*"]
 exclude = ["tests*", "docs*", "deploy*", "scripts*"]
 
+[tool.setuptools.package-data]
+"llm.api" = ["web/*.html", "web/*.js", "web/*.css"]
+"llm.configs" = ["*.yaml"]
+
 [tool.ruff]
 line-length = 110
 target-version = "py310"

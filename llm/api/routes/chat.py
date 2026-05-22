@@ -33,9 +33,12 @@ async def chat(request: Request, body: ChatCompletionRequest):
 
     if body.stream:
         async def event_stream():
-            async for chunk in engine.generate_stream_async(gen_req):
-                yield "data: " + json.dumps({"type": "delta", "text": chunk}) + "\n\n"
-            yield "data: " + json.dumps({"type": "end"}) + "\n\n"
+            try:
+                async for chunk in engine.generate_stream_async(gen_req):
+                    yield "data: " + json.dumps({"type": "delta", "text": chunk}) + "\n\n"
+                yield "data: " + json.dumps({"type": "end"}) + "\n\n"
+            except Exception as exc:  # noqa: BLE001 — surfaced to client over SSE
+                yield "data: " + json.dumps({"type": "error", "message": f"{type(exc).__name__}: {exc}"}) + "\n\n"
 
         return StreamingResponse(event_stream(), media_type="text/event-stream")
 
