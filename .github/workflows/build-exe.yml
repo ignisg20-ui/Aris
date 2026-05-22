@@ -1,0 +1,103 @@
+name: build-exe
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "installer/**"
+      - ".github/workflows/build-exe.yml"
+      - "llm/**"
+      - "pyproject.toml"
+      - "requirements.txt"
+  workflow_dispatch:
+    inputs:
+      gpu:
+        description: "Build with CUDA-enabled PyTorch (huge artifact)"
+        required: false
+        default: "false"
+
+jobs:
+  build-windows:
+    name: aris.exe (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip wheel
+          if ("${{ github.event.inputs.gpu }}" -eq "true") {
+            pip install --extra-index-url https://download.pytorch.org/whl/cu124 torch
+          } else {
+            pip install --extra-index-url https://download.pytorch.org/whl/cpu torch
+          }
+          pip install -e .
+          pip install pyinstaller==6.10.0
+
+      - name: Build aris.exe
+        shell: pwsh
+        working-directory: installer
+        run: |
+          pyinstaller aris.spec --clean --noconfirm
+          Get-ChildItem dist
+          $size = (Get-Item dist/aris.exe).Length / 1MB
+          Write-Host ("aris.exe size: {0:N1} MB" -f $size)
+
+      - name: Smoke test the binary
+        shell: pwsh
+        working-directory: installer
+        run: |
+          ./dist/aris.exe version
+          ./dist/aris.exe info | Out-String
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aris-exe-${{ github.sha }}
+          path: installer/dist/aris.exe
+          retention-days: 14
+          if-no-files-found: error
+
+  build-linux-smoke:
+    name: aris (Linux smoke build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install --extra-index-url https://download.pytorch.org/whl/cpu torch
+          pip install -e .
+          pip install pyinstaller==6.10.0
+
+      - name: Build aris (Linux ELF)
+        working-directory: installer
+        run: |
+          pyinstaller aris.spec --clean --noconfirm
+          ls -lh dist/
+          ./dist/aris version
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aris-linux-${{ github.sha }}
+          path: installer/dist/aris
+          retention-days: 14
+          if-no-files-found: error

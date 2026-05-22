@@ -58,3 +58,8 @@ datasets/
 .env
 .env.*
 !.env.example
+
+# PyInstaller artifacts
+installer/build/
+installer/dist/
+*.spec.bak
