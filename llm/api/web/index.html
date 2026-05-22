@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aris Chat</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23151821'/%3E%3Cpath fill='%23a8b3ff' d='M32 14l14 36h-6l-3-8H27l-3 8h-6L32 14zm-3 23h6l-3-8z'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">A</span>
+        <div>
+          <h1>Aris</h1>
+          <span class="muted small">Production-grade MoE LLM</span>
+        </div>
+      </div>
+      <div class="health" id="health" title="Server health">
+        <span class="dot dot-idle"></span><span id="health-text">connecting…</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <button class="primary" id="new-chat">+ New chat</button>
+
+        <section class="panel">
+          <h2>System prompt</h2>
+          <textarea
+            id="system-prompt"
+            rows="5"
+            placeholder="You are Aris, a careful and helpful assistant…"
+          >You are Aris, a helpful, harmless, and honest assistant.</textarea>
+        </section>
+
+        <section class="panel">
+          <h2>Sampling</h2>
+          <label
+            >Temperature
+            <input type="range" id="temperature" min="0" max="2" step="0.05" value="0.7" />
+            <span id="temperature-v" class="muted small">0.70</span>
+          </label>
+          <label
+            >Top-p
+            <input type="range" id="top_p" min="0" max="1" step="0.01" value="0.95" />
+            <span id="top_p-v" class="muted small">0.95</span>
+          </label>
+          <label
+            >Top-k
+            <input type="number" id="top_k" min="0" max="500" step="1" value="0" />
+          </label>
+          <label
+            >Max new tokens
+            <input type="number" id="max_new_tokens" min="1" max="8192" step="1" value="512" />
+          </label>
+          <label>
+            <input type="checkbox" id="stream" checked /> Stream tokens
+          </label>
+        </section>
+
+        <section class="panel small muted">
+          <p>
+            UI talks to <code>/chat</code> via SSE streaming. Configure model
+            via <code>ARIS_MODEL_CONFIG</code> /
+            <code>ARIS_CHECKPOINT</code> env vars before starting the server.
+          </p>
+        </section>
+      </aside>
+
+      <section class="chat">
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="composer" class="composer" autocomplete="off">
+          <textarea
+            id="input"
+            rows="1"
+            placeholder="Ask Aris anything… (Shift+Enter = newline, Enter = send)"
+          ></textarea>
+          <div class="composer-actions">
+            <button type="button" id="stop" class="ghost" disabled>Stop</button>
+            <button type="submit" id="send" class="primary">Send</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

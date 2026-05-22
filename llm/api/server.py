@@ -24,6 +24,8 @@ from pathlib import Path
 import torch
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from ..inference.engine import InferenceEngine
 from ..model.aris import ArisForCausalLM
@@ -92,6 +94,15 @@ def build_app() -> FastAPI:
     app.include_router(train_router)
     app.include_router(finetune_router)
     app.mount("/metrics", metrics_app())
+
+    # Bundled chat UI. Served as static files at /ui; root path redirects to it.
+    web_dir = Path(__file__).parent / "web"
+    if web_dir.exists():
+        app.mount("/ui", StaticFiles(directory=str(web_dir), html=True), name="web-ui")
+
+        @app.get("/", include_in_schema=False)
+        async def root() -> RedirectResponse:
+            return RedirectResponse(url="/ui/")
 
     @app.get("/health", response_model=HealthResponse)
     async def health(request: Request) -> HealthResponse:

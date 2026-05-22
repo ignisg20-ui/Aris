@@ -82,6 +82,15 @@ curl -N http://localhost:8000/chat \
     -d '{"messages":[{"role":"user","content":"Hi"}],"stream":true}'
 ```
 
+### Built-in chat UI
+
+The server also ships a zero-dependency HTML chat front-end at
+[`http://localhost:8000/ui/`](http://localhost:8000/ui/) (root `/` redirects to
+it). Streaming tokens via SSE, editable system prompt, live
+temperature / top-p / top-k / max-tokens controls, stop generation, new chat
+reset, and a `/health` indicator. The assets live in
+[`llm/api/web/`](llm/api/web/) and are also bundled inside `aris.exe`.
+
 ### Docker / Kubernetes
 
 ```bash
