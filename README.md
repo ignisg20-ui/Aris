@@ -82,6 +82,21 @@ curl -N http://localhost:8000/chat \
     -d '{"messages":[{"role":"user","content":"Hi"}],"stream":true}'
 ```
 
+### Windows / standalone `.exe`
+
+A Windows-native single-file binary is built on every push by
+`.github/workflows/build-exe.yml`. The `aris.exe` artifact is attached to the
+workflow run on GitHub — download it, run `aris.exe info` and `aris.exe serve
+--config llm\configs\1b.yaml --port 8000`. For GPU builds, trigger the workflow
+manually with the `gpu=true` input. To build locally:
+
+```powershell
+pip install -e .
+pip install pyinstaller==6.10.0
+pyinstaller installer/aris.spec --clean --noconfirm
+# dist/aris.exe — single-file (~600 MB CPU / ~3 GB CUDA).
+```
+
 ### Docker / Kubernetes
 
 ```bash
