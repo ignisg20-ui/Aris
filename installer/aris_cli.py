@@ -65,12 +65,14 @@ def _cmd_serve(args: argparse.Namespace) -> int:
         os.environ["ARIS_CHECKPOINT"] = args.checkpoint
     if args.tokenizer:
         os.environ["ARIS_TOKENIZER_META"] = args.tokenizer
-    if args.log_level:
+    if args.log_level is not None:
         os.environ["ARIS_LOG_LEVEL"] = args.log_level
+
+    log_level = (args.log_level or os.environ.get("ARIS_LOG_LEVEL", "INFO")).lower()
 
     from llm.api.server import build_app
 
-    uvicorn.run(build_app(), host=args.host, port=args.port, log_level=args.log_level.lower())
+    uvicorn.run(build_app(), host=args.host, port=args.port, log_level=log_level)
     return 0
 
 
@@ -133,7 +135,11 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--config", default=None, help="path to a model config YAML")
     serve.add_argument("--checkpoint", default=None)
     serve.add_argument("--tokenizer", default=None)
-    serve.add_argument("--log-level", default="INFO")
+    serve.add_argument(
+        "--log-level",
+        default=None,
+        help="override log level (default: $ARIS_LOG_LEVEL or INFO)",
+    )
     serve.set_defaults(func=_cmd_serve)
 
     gen = sub.add_parser("generate", help="one-shot text generation")
