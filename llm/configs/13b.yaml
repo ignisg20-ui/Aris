@@ -1,0 +1,17 @@
+# Aris-13B: dense, multi-GPU.
+name: aris-13b
+vocab_size: 128256
+hidden_size: 5120
+intermediate_size: 13824
+num_layers: 40
+max_position_embeddings: 32768
+norm_eps: 1.0e-5
+dtype: bf16
+attention:
+  num_heads: 40
+  num_kv_heads: 8
+  attention_impl: sdpa
+rope:
+  rope_theta: 1000000.0
+moe:
+  num_experts: 1

@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: aris-inference
+  labels: { release: prometheus }
+spec:
+  selector:
+    matchLabels: { app: aris-inference }
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: aris-alerts
+spec:
+  groups:
+    - name: aris.rules
+      rules:
+        - alert: ArisHighLatencyP95
+          expr: histogram_quantile(0.95, sum by (le) (rate(aris_latency_seconds_bucket[5m]))) > 5
+          for: 10m
+          labels: { severity: warning }
+          annotations:
+            summary: "Aris p95 latency > 5s"
+        - alert: ArisGpuMemHigh
+          expr: aris_gpu_mem_used_gb / aris_gpu_mem_total_gb > 0.95
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: "GPU memory >95% on Aris pod"

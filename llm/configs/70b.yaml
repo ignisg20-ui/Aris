@@ -1,0 +1,25 @@
+# Aris-70B: dense. Requires tensor parallelism for training & inference.
+name: aris-70b
+vocab_size: 128256
+hidden_size: 8192
+intermediate_size: 28672
+num_layers: 80
+max_position_embeddings: 131072
+norm_eps: 1.0e-5
+dtype: bf16
+attention:
+  num_heads: 64
+  num_kv_heads: 8
+  attention_impl: sdpa
+  mla_q_lora_rank: 1536
+  mla_kv_lora_rank: 512
+  mla_qk_rope_head_dim: 64
+  mla_qk_nope_head_dim: 128
+  mla_v_head_dim: 128
+rope:
+  rope_theta: 1000000.0
+  rope_scaling_type: yarn
+  rope_scaling_factor: 4.0
+  rope_original_max_position: 32768
+moe:
+  num_experts: 1
